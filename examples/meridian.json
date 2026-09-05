@@ -1,0 +1,16 @@
+{
+  "title": "Client portal redesign",
+  "client_name": "Meridian Supply",
+  "client_contact": "Sam Rivera",
+  "summary": "Meridian Supply needs a clearer way for its wholesale customers to track orders and manage their accounts. Alder & Co. will redesign the client portal around these daily tasks and deliver a tested implementation.",
+  "deliverables": "A review of the existing ordering journey and a prioritized set of improvements.\nResponsive account, order history, and shipment tracking screens.\nAn accessible React interface integrated with the existing order API.\nHandover documentation and a recorded walkthrough for the internal team.",
+  "timeline": "Six weeks from kickoff: one week for discovery, two for interface design, two for implementation, and one for testing and handover.",
+  "assumptions": "Meridian will provide API access and sample order data before kickoff. One consolidated feedback round is included at each milestone. Copywriting, branding changes, and payment processing are outside this scope.",
+  "currency": "EUR",
+  "line_items": [
+    {"description": "Discovery and journey mapping", "quantity": "3", "unit_cents": 65000},
+    {"description": "Interface design and prototype", "quantity": "7", "unit_cents": 65000},
+    {"description": "Frontend implementation", "quantity": "10", "unit_cents": 70000},
+    {"description": "Testing and handover", "quantity": "4", "unit_cents": 60000}
+  ]
+}

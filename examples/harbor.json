@@ -1,0 +1,14 @@
+{
+  "title": "Booking workflow audit",
+  "client_name": "Harbor Studio",
+  "client_contact": "Taylor Kim",
+  "summary": "Harbor Studio wants to reduce the manual work involved in booking workshops. We will document the current process, identify avoidable handoffs, and prepare a practical implementation plan.",
+  "deliverables": "Interviews with the bookings team and a map of the current workflow.\nA prioritized backlog with effort estimates and acceptance criteria.\nA clickable prototype of the proposed booking experience.",
+  "timeline": "Three weeks, beginning when the bookings team and sample records are available.",
+  "assumptions": "This engagement covers discovery and design. Production implementation will be estimated separately.",
+  "currency": "EUR",
+  "line_items": [
+    {"description": "Research and workflow mapping", "quantity": "4", "unit_cents": 60000},
+    {"description": "Prototype and implementation plan", "quantity": "5", "unit_cents": 65000}
+  ]
+}
