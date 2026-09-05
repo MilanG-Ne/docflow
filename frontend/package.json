@@ -1,5 +1,5 @@
 {
-  "name": "sites-project",
+  "name": "docflow-frontend",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -8,9 +8,11 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
-    "start": "wrangler dev --config dist/server/wrangler.json",
+    "start": "vinext start",
     "lint": "oxlint",
-    "format": "oxfmt"
+    "format": "oxfmt",
+    "typecheck": "tsc --noEmit",
+    "check": "pnpm typecheck && pnpm lint"
   },
   "dependencies": {
     "react": "19.2.6",
@@ -51,5 +53,9 @@
     "vite": "8.0.13",
     "wrangler": "4.92.0"
   },
-  "type": "module"
+  "type": "module",
+  "description": "Proposal workspace for DocFlow",
+  "license": "MIT",
+  "author": "Milan Georgijevic",
+  "packageManager": "pnpm@11.19.0"
 }
