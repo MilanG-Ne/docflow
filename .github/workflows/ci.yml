@@ -1,0 +1,74 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+          package_json_file: frontend/package.json
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm build
+
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-bookworm
+        env:
+          POSTGRES_USER: docflow
+          POSTGRES_PASSWORD: test-database
+          POSTGRES_DB: docflow_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U docflow -d docflow_test"
+          --health-interval 3s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --target test -t docflow-tests .
+      - name: Lint and tests with real PostgreSQL and LibreOffice
+        run: |
+          docker run --rm --network host \
+            -e TEST_POSTGRES_URL=postgresql+psycopg://docflow:test-database@localhost:5432/docflow_test \
+            docflow-tests sh -c 'python -m ruff check . && python -m pytest -q'
+      - name: Verify migrations match the models
+        run: |
+          docker run --rm --network host \
+            -e DATABASE_URL=postgresql+psycopg://docflow:test-database@localhost:5432/docflow_test \
+            docflow-tests sh -c 'python -m alembic upgrade head && python -m alembic check'
+
+  docker-demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up --build --wait --wait-timeout 150
+      - name: Full proposal lifecycle over HTTP
+        run: python3 scripts/smoke.py
+      - name: Show service logs if a check fails
+        if: failure()
+        run: docker compose logs --no-color --tail 100
+      - name: Shut down the isolated CI demo
+        if: always()
+        run: docker compose down --volumes

@@ -1,0 +1,68 @@
+name: docflow
+
+x-app: &app
+  build:
+    context: .
+    target: runtime
+  environment: &environment
+    DATABASE_URL: postgresql+psycopg://docflow:local-demo-database@db:5432/docflow
+    ARTIFACT_DIR: /data/artifacts
+    FRONTEND_DIR: /app/frontend
+    APP_ORIGIN: http://localhost:8000
+    DEMO_MODE: "true"
+    COOKIE_SECURE: "false"
+  volumes:
+    - documents:/data/artifacts
+
+services:
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: docflow
+      POSTGRES_USER: docflow
+      POSTGRES_PASSWORD: local-demo-database
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docflow -d docflow"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  init:
+    <<: *app
+    command: ["sh", "-c", "python -m alembic upgrade head && python -m docflow.seed"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    <<: *app
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+
+  worker:
+    <<: *app
+    command: ["python", "-m", "docflow.worker"]
+    stop_grace_period: 75s
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,time; assert time.time()-os.stat('/tmp/docflow-worker-heartbeat').st_mtime < 100"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 70s
+
+volumes:
+  database:
+  documents:
