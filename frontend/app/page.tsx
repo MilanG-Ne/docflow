@@ -51,7 +51,15 @@ export default function Home() {
           <>
             <h1>The workspace is unavailable</h1>
             <p className="muted">{error}</p>
-            <Button onClick={() => {setError('');setLoading(true);setAttempt(attempt + 1);}}>Try again</Button>
+            <Button
+              onClick={() => {
+                setError('');
+                setLoading(true);
+                setAttempt(attempt + 1);
+              }}
+            >
+              Try again
+            </Button>
           </>
         )}
       </main>

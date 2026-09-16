@@ -1,0 +1,11 @@
+{
+  "decision": "approved",
+  "comment": "Scope, fees, and generated documents reviewed.",
+  "reviewer": "Jamie Lee",
+  "created_at": 1788645531,
+  "content_hash": "f2da281270239d95ec4bdfebe969da7e497084bd5a7c4fde1aa12be3869c222c",
+  "artifact_hashes": {
+    "docx": "7c724fcd4358aa0b6cc4c6875fa697d11576aff7522aab39c73680928b617659",
+    "pdf": "d4e7d5fde113c06b7ab3eaa34b07dea6e7ca2e0e344a98b500178e63709d7607"
+  }
+}

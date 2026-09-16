@@ -110,7 +110,10 @@ export async function api<T>(
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
-    const detail: unknown = payload && typeof payload === 'object' && 'detail' in payload ? payload.detail : undefined;
+    const detail: unknown =
+      payload && typeof payload === 'object' && 'detail' in payload
+        ? payload.detail
+        : undefined;
     const message =
       typeof detail === 'string'
         ? detail
