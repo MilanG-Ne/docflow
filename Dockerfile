@@ -27,7 +27,9 @@ RUN pip install --no-cache-dir -r requirements-dev.lock
 COPY backend/tests ./tests
 COPY backend/pyproject.toml ./
 USER app
-ENV RUN_CONVERSION_TESTS=1
+ENV RUN_CONVERSION_TESTS=1 \
+    RUFF_CACHE_DIR=/tmp/ruff-cache \
+    PYTEST_ADDOPTS="-o cache_dir=/tmp/pytest-cache"
 CMD ["python", "-m", "pytest", "-q"]
 
 FROM base AS runtime
