@@ -27,6 +27,7 @@ jobs:
           package_json_file: frontend/package.json
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - run: pnpm test
       - run: pnpm build
 
   backend:

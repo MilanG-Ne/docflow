@@ -76,6 +76,7 @@ export function Workspace({
       selectedRef.current = id;
       setSelected(id);
       setProposal(detail);
+      setEditor(null);
       setError('');
     }
     return detail;

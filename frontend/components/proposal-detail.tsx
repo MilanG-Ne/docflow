@@ -1,4 +1,5 @@
 'use client';
+import { lineTotal } from '@/lib/fees';
 import { useState } from 'react';
 import {
   Check,
@@ -198,9 +199,7 @@ export function ProposalDetail({
                           </TableCell>
                           <TableCell className="numeric">
                             {money(
-                              Math.round(
-                                Number(item.quantity) * item.unit_cents,
-                              ),
+                              lineTotal(item.quantity, item.unit_cents),
                               content.currency,
                             )}
                           </TableCell>

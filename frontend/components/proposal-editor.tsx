@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { type Content, money } from '@/lib/api';
+import { hundredths, lineTotal } from '@/lib/fees';
 
 export function ProposalEditor({
   initial,
@@ -65,12 +66,12 @@ export function ProposalEditor({
     setError('');
     try {
       const items = content.line_items.map((item, i) => {
-        if (!/^\d{1,6}(\.\d{1,2})?$/.test(rates[i]))
+        const cents = hundredths(rates[i]);
+        if (cents === null)
           throw new Error('Enter each day rate with up to two decimal places.');
-        const [whole, fraction = ''] = rates[i].split('.');
         return {
           ...item,
-          unit_cents: Number(whole) * 100 + Number(fraction.padEnd(2, '0')),
+          unit_cents: cents,
         };
       });
       await onSave({ ...content, line_items: items });
@@ -81,8 +82,7 @@ export function ProposalEditor({
     }
   }
   const total = content.line_items.reduce(
-    (sum, row, i) =>
-      sum + Math.round(Number(row.quantity) * Number(rates[i]) * 100),
+    (sum, row, i) => sum + lineTotal(row.quantity, hundredths(rates[i]) ?? 0),
     0,
   );
   return (
