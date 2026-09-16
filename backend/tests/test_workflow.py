@@ -191,3 +191,45 @@ def test_tampered_file_cannot_be_downloaded(clients, environment, content):
         file = db.scalar(select(Artifact).limit(1))
         (settings.artifact_dir / file.path).write_bytes(b"tampered")
         assert author.get(f"/api/artifacts/{file.id}").status_code == 409
+
+
+def test_changed_file_cannot_be_approved(clients, environment, content):
+    author, reviewer = clients
+    p = ready(author, environment, content)
+    assert author.post(route(p) + "/submit").status_code == 200
+    settings, factory = environment
+    with factory() as db:
+        file = db.scalar(select(Artifact).limit(1))
+        (settings.artifact_dir / file.path).write_bytes(b"changed-after-generation")
+    response = reviewer.post(
+        route(p) + "/review",
+        json={
+            "decision": "approved",
+            "comment": "Scope and documents reviewed.",
+            "content_hash": p["revisions"][0]["content_hash"],
+        },
+    )
+    assert response.status_code == 409
+    revision = author.get(f"/api/proposals/{p['id']}").json()["revisions"][0]
+    assert revision["state"] == "in_review" and revision["review"] is None
+
+
+def test_missing_file_cannot_be_approved(clients, environment, content):
+    author, reviewer = clients
+    p = ready(author, environment, content)
+    author.post(route(p) + "/submit")
+    settings, factory = environment
+    with factory() as db:
+        file = db.scalar(select(Artifact).limit(1))
+        (settings.artifact_dir / file.path).unlink()
+    assert (
+        reviewer.post(
+            route(p) + "/review",
+            json={
+                "decision": "approved",
+                "comment": "Scope and documents reviewed.",
+                "content_hash": p["revisions"][0]["content_hash"],
+            },
+        ).status_code
+        == 410
+    )

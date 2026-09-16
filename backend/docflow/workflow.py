@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
+from .artifacts import verified_path
 from .models import Artifact, Event, Job, Proposal, Review, Revision, User
 from .schemas import ProposalContent, ReviewInput
 
@@ -100,7 +101,14 @@ def submit(db: Session, user: User, proposal_id: str, revision_id: str):
     log(db, proposal, revision.number, user.name, "Requested review")
 
 
-def review(db: Session, user: User, proposal_id: str, revision_id: str, data: ReviewInput):
+def review(
+    db: Session,
+    user: User,
+    proposal_id: str,
+    revision_id: str,
+    data: ReviewInput,
+    artifact_dir: Path,
+):
     proposal = visible_proposal(db, proposal_id, user, lock=True)
     if user.role != "reviewer" or user.id == proposal.owner_id:
         raise HTTPException(403, "An independent reviewer must make this decision")
@@ -112,6 +120,9 @@ def review(db: Session, user: User, proposal_id: str, revision_id: str, data: Re
     files = db.scalars(select(Artifact).where(Artifact.revision_id == revision.id)).all()
     if {file.kind for file in files} != {"docx", "pdf"}:
         raise HTTPException(409, "Both documents are required for a review")
+    if data.decision == "approved":
+        for file in files:
+            verified_path(file, artifact_dir)
     db.add(
         Review(
             revision_id=revision.id,

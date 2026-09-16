@@ -1,4 +1,3 @@
-import hashlib
 import secrets
 from contextlib import asynccontextmanager
 from typing import Annotated
@@ -10,6 +9,7 @@ from sqlalchemy import delete, select, text
 from sqlalchemy.orm import Session
 
 from . import auth, workflow
+from .artifacts import verified_path
 from .config import Settings
 from .db import session_factory
 from .models import Artifact, LoginSession, Proposal, Revision, User, now
@@ -180,7 +180,7 @@ def create_app(settings: Settings | None = None, factory=None) -> FastAPI:
 
     @app.post("/api/proposals/{proposal_id}/revisions/{revision_id}/review")
     def review(proposal_id: str, revision_id: str, data: ReviewInput, db: DB, identity: Identity):
-        workflow.review(db, identity[0], proposal_id, revision_id, data)
+        workflow.review(db, identity[0], proposal_id, revision_id, data, settings.artifact_dir)
         db.commit()
         return {"ok": True}
 
@@ -197,11 +197,7 @@ def create_app(settings: Settings | None = None, factory=None) -> FastAPI:
             raise HTTPException(404, "File not found")
         revision = db.get(Revision, file.revision_id)
         workflow.visible_proposal(db, revision.proposal_id, identity[0])
-        path = (settings.artifact_dir / file.path).resolve()
-        if not path.is_relative_to(settings.artifact_dir.resolve()) or not path.is_file():
-            raise HTTPException(410, "The generated file is unavailable")
-        if hashlib.sha256(path.read_bytes()).hexdigest() != file.sha256:
-            raise HTTPException(409, "File integrity check failed")
+        path = verified_path(file, settings.artifact_dir)
         media = (
             "application/pdf"
             if file.kind == "pdf"
